@@ -1,0 +1,20 @@
+#!/bin/bash
+PWD=$(pwd)
+if [ `git rev-parse --git-dir 2> /dev/null` ]; then
+    if [ "$1" == '' -o "$1" == '--help' ]; then
+        echo "usage: git snaplist target_file"
+        echo "      - print the list of snapshot stored for target file"
+        exit 0
+    fi
+    FILE=$PWD/$1
+    FILENAME=$(basename $FILE)
+    DIRNAME=$(dirname $FILE)
+    SNAPSHOT_FILE=$DIRNAME/.${FILENAME}.snapshot
+    if [ -e "$SNAPSHOT_FILE" ]; then
+        cat $SNAPSHOT_FILE
+    else
+        echo "No snapshot for file"
+    fi
+else
+    echo "Not a git repo"
+fi

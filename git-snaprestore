@@ -1,0 +1,36 @@
+#!/bin/bash
+PWD=$(pwd)
+if [ `git rev-parse --git-dir 2> /dev/null` ]; then
+    if [ "$1" == '' -o "$1" == '--help' -o "$2" == '' ]; then
+        echo ""
+        echo "usage: git snaprestore <target_file> <hash>"
+        exit 0
+    fi
+    FILE=$PWD/$1
+    HASH=$2
+    FILENAME=$(basename $FILE)
+    DIRNAME=$(dirname $FILE)
+    SNAPSHOT_FILE=$DIRNAME/.${FILENAME}.snapshot
+    if [ ! -e "$SNAPSHOT_FILE" ]; then
+        echo "The file do not have any snapshot registered"
+        exit 0
+    fi
+
+    if [ `grep -c "$HASH" "$SNAPSHOT_FILE"` -eq 0 ]; then
+        echo "The hash is not registered"
+        exit 0
+    fi
+
+    if [ `git cat-file -e "$HASH" 2> /dev/null` ]; then
+        TYPE=$(git cat-file -t "$HASH")
+        if [ "$TYPE" == 'blob']; then
+            git cat-file $HASH -p > $FILE
+        else
+            echo "Target is not a file, operation not allowed"
+        fi
+    else
+        echo "HASH $HASH not found, might have been gc-ed"
+    fi
+else
+    echo "Not a git repo"
+fi

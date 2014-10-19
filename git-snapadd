@@ -1,0 +1,32 @@
+#!/bin/bash
+PWD=$(pwd)
+if [ `git rev-parse --git-dir 2> /dev/null` ]; then
+    if [ "$1" == '' -o "$1" == '--help' ]; then
+        echo "usage: git snapfile target_file [name]"
+        exit 0
+    fi
+    FILE=$PWD/$1
+    LABEL=$2
+    FILENAME=$(basename $FILE)
+    DIRNAME=$(dirname $FILE)
+    SNAPSHOT_FILE=$DIRNAME/.${FILENAME}.snapshot
+    if [ -e "$FILE" ]; then
+        if [ -f "$FILE" ]; then
+            HASH=$(git hash-object -w $FILE)
+            if [ -e $SNAPSHOT_FILE ];then
+                if [ `grep -c "$HASH" "$SNAPSHOT_FILE"` -gt 0 ]; then
+                    echo "Hash already exist"
+                    echo $(grep $HASH $SNAPSHOT_FILE)
+                    exit 0
+                fi
+            fi
+            echo `date +'%C%y-%m-%dT%H:%M'`'|'$HASH'|'$LABEL>> $SNAPSHOT_FILE
+        else
+            echo "target is not a file"
+        fi
+    else
+        echo "target do not exists"
+    fi
+else
+    echo "Not a git repo"
+fi
